@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a52cc436-190f-453c-84bb-9aa77e15e361" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<flow name="for-each-testFlow" doc:id="dd33f209-03bc-48a9-beb6-cc380a3bb0a2" >
+		<http:listener doc:name="Listener" doc:id="37aea70c-44fe-4019-a76a-47a2516fc10f" config-ref="HTTP_Listener_config" path="/test"/>
+		<ee:transform doc:name="Transform Message" doc:id="da2c0141-fbfb-476d-9782-a5b744f28f38" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+    {
+        "Name": "Joe",
+        "ID": "1234"
+    },
+    {
+        "Name": "loe",
+        "ID": "2345"
+    },
+    {
+        "A3Name": "Jole",
+        "A3ID": "3456"
+    }
+]]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="storeData" ><![CDATA[%dw 2.0
+output application/json
+---
+[] as Array]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="54a617e3-37ee-4856-a4db-582f646d9ae7" >
+			<logger level="INFO" doc:name="Logger" doc:id="443b9a5e-5d21-4265-afcc-aae515cae7fd" message="#[payload]" />
+			<ee:transform doc:name="Transform Message" doc:id="5a05bb13-31a7-4295-98ab-0f1edd7fd5cb">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="storeData"><![CDATA[%dw 2.0
+output application/json
+---
+vars.storeData ++ [payload]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</parallel-foreach>
+		<ee:transform doc:name="Transform Message" doc:id="4ab5ec9a-34b7-4b87-8b57-4842b4ffc75a" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="storeData" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.storeData ++ [payload]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="2fcf1663-e485-4c64-8ec1-a57389951ef6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.storeData]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="81812ef4-1496-4e6f-a8b2-b7a03ade8c92" message="#[payload]"/>
+	</flow>
+</mule>
